@@ -15,7 +15,7 @@ class TransparentWindow(QtWidgets.QWidget):
 
         # 创建退出菜单选项
         exit_action = QtWidgets.QAction("Exit", self)
-        exit_action.triggered.connect(app.quit)
+        exit_action.triggered.connect(self.exit)
 
         # 创建系统托盘菜单
         self.tray_menu = QtWidgets.QMenu(self)
@@ -24,7 +24,12 @@ class TransparentWindow(QtWidgets.QWidget):
         # 设置系统托盘菜单
         self.tray_icon.setContextMenu(self.tray_menu)
 
-        self.current_line = 0
+        try:
+            with open('page', 'rb') as f:
+                page = f.read()
+                self.current_line = int.from_bytes(page, 'big')
+        except:
+            self.current_line = 0
         self.text_lines = self.read_text_file("book.txt")
 
         self.label = QtWidgets.QLabel(self)
@@ -130,6 +135,13 @@ class TransparentWindow(QtWidgets.QWidget):
             self.current_line += 1
             self.display_text(self.text_lines[self.current_line])
             self.reset_idle_timer()
+
+    def exit(self):
+        with open("page", "wb") as f:
+            page_len = len(hex(self.current_line)[2:])//2 + len(hex(self.current_line)[2:])%2
+            page = self.current_line.to_bytes(page_len, 'big')
+            f.write(page)
+        exit()
 
 
 if __name__ == "__main__":
